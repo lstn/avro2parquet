@@ -14,9 +14,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import parquet.avro.AvroParquetOutputFormat;
-import parquet.avro.AvroSchemaConverter;
-import parquet.hadoop.metadata.CompressionCodecName;
+import org.apache.parquet.avro.AvroParquetOutputFormat;
+import org.apache.parquet.avro.AvroSchemaConverter;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+
 
 public class Avro2Parquet extends Configured implements Tool {
 
@@ -25,7 +26,7 @@ public class Avro2Parquet extends Configured implements Tool {
     Path inputPath = new Path(args[1]);
     Path outputPath = new Path(args[2]);
 
-    Job job = new Job(getConf());
+    Job job = Job.getInstance();
     job.setJarByClass(getClass());
     Configuration conf = job.getConfiguration();
 
@@ -51,7 +52,7 @@ public class Avro2Parquet extends Configured implements Tool {
      * It would be better to set this based on the files' block size,
      * using fs.getFileStatus or fs.listStatus.
      */
-    AvroParquetOutputFormat.setBlockSize(job, 500 * 1024 * 1024);
+    AvroParquetOutputFormat.setBlockSize(job, 128 * 1024 * 1024);
     
     job.setMapperClass(Avro2ParquetMapper.class);
     job.setNumReduceTasks(0);
