@@ -52,7 +52,7 @@ public class Avro2Parquet extends Configured implements Tool {
      * It would be better to set this based on the files' block size,
      * using fs.getFileStatus or fs.listStatus.
      */
-    AvroParquetOutputFormat.setBlockSize(job, 128 * 1024 * 1024);
+    AvroParquetOutputFormat.setBlockSize(job, 500 * 1024 * 1024);
     
     job.setMapperClass(Avro2ParquetMapper.class);
     job.setNumReduceTasks(0);
