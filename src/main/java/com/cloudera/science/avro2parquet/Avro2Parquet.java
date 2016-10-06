@@ -3,6 +3,7 @@ package com.cloudera.science.avro2parquet;
 import java.io.InputStream;
 
 import org.apache.avro.Schema;
+import org.apache.avro.mapreduce.AvroJob;
 import org.apache.avro.mapreduce.AvroKeyInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -33,6 +34,7 @@ public class Avro2Parquet extends Configured implements Tool {
     FileSystem fs = FileSystem.get(conf);
     InputStream in = fs.open(schemaPath);
     Schema avroSchema = new Schema.Parser().parse(in);
+    AvroJob.setInputKeySchema(job, avroSchema);
 
     System.out.println(new AvroSchemaConverter().convert(avroSchema).toString());
 
