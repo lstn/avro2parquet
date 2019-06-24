@@ -3,10 +3,10 @@ package com.cloudera.science.avro2parquet;
 import java.io.InputStream;
 
 import org.apache.avro.Schema;
+import org.apache.avro.mapreduce.AvroJob;
 import org.apache.avro.mapreduce.AvroKeyInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
@@ -26,21 +26,33 @@ public class Avro2Parquet extends Configured implements Tool {
     Path inputPath = new Path(args[1]);
     Path outputPath = new Path(args[2]);
 
+    Path readSchemaPath = null;
+    if (args.length > 3) {
+      readSchemaPath = new Path(args[3]);
+    }
+
+
     Job job = Job.getInstance();
     job.setJarByClass(getClass());
     Configuration conf = job.getConfiguration();
 
     FileSystem fs = FileSystem.get(conf);
     InputStream in = fs.open(schemaPath);
-    Schema avroSchema = new Schema.Parser().parse(in);
+    Schema avroWriteSchema = new Schema.Parser().parse(in);
 
-    System.out.println(new AvroSchemaConverter().convert(avroSchema).toString());
+    if (readSchemaPath != null) {
+      InputStream readSchemaStream = fs.open(readSchemaPath);
+      Schema avroReadSchema = new Schema.Parser().parse(readSchemaStream);
+      AvroJob.setInputKeySchema(job, avroReadSchema);
+    }
+
+    System.out.println(new AvroSchemaConverter().convert(avroWriteSchema).toString());
 
     FileInputFormat.addInputPath(job, inputPath);
     job.setInputFormatClass(AvroKeyInputFormat.class);
     job.setOutputFormatClass(AvroParquetOutputFormat.class);
     AvroParquetOutputFormat.setOutputPath(job, outputPath);
-    AvroParquetOutputFormat.setSchema(job, avroSchema);
+    AvroParquetOutputFormat.setSchema(job, avroWriteSchema);
     AvroParquetOutputFormat.setCompression(job, CompressionCodecName.SNAPPY);
     AvroParquetOutputFormat.setCompressOutput(job, true);
     
